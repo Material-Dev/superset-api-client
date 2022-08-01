@@ -60,14 +60,16 @@ class Object:
     def base_url(self) -> str:
         return self._parent.client.join_urls(
             self._parent.base_url,
-            str(self.id)
+            # str(self.id)
         )
 
     @property
     def import_url(self) -> str:
         return self._parent.client.join_urls(
             self._parent.base_url,
-            str(self.id)
+            "import",
+            # str(self.id),
+
         )
 
     @property
@@ -77,7 +79,8 @@ class Object:
         # to bind to a specific object
         return self._parent.client.join_urls(
             self.base_url,
-            "export"
+            "export",
+            # str(self.id),
         )
 
     @property
@@ -109,8 +112,8 @@ class Object:
         field_names = self.field_names()
 
         client = self._parent.client
-        reponse = client.get(self.base_url)
-        o = reponse.json()
+        response = client.get(self.base_url)
+        o = response.json()
         o = o.get("result")
         for k, v in o.items():
             if k in field_names:
