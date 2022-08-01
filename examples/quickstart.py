@@ -3,7 +3,7 @@ from supersetapiclient.client import SupersetClient
 client = SupersetClient(
     host="https://dev.superset.materialplus.io/",
     username="hbalian",
-    password="#e7Am@p#Ln31Mbk^",
+    password="XO5PFYZIeEo9FT1@",
 )
 
 
@@ -18,11 +18,16 @@ dashboard.id
 dashboard.export('/users/hragbalian/desktop/')
 dashboard.export_url
 
+
+
+
 dashboard.field_names()
 
-response = client.get(dashboard.base_url)
-o = response.json()
-o.get("result")
+
+response = client.get(dashboard.export_url, params={
+    "q": [dashboard.id]  # Object must have an id field to be exported
+})
+response.raise_for_status()
 
 dashboard.import_url
 
