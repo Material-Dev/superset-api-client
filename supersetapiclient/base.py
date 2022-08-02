@@ -4,6 +4,10 @@ import dataclasses
 import json
 from typing import List, Union
 from pathlib import Path
+import uuid
+
+import zipfile, io
+
 
 import yaml
 from requests import Response
@@ -67,9 +71,8 @@ class Object:
     def import_url(self) -> str:
         return self._parent.client.join_urls(
             self._parent.base_url,
-            "import",
+            "import/",
             # str(self.id),
-
         )
 
     @property
@@ -79,7 +82,7 @@ class Object:
         # to bind to a specific object
         return self._parent.client.join_urls(
             self.base_url,
-            "export",
+            "export/",
             # str(self.id),
         )
 
@@ -98,14 +101,19 @@ class Object:
             )
 
         # Get export response
+        file_uuid = str(uuid.uuid4())
+
         client = self._parent.client
         response = client.get(self.export_url, params={
-            "q": [self.id]  # Object must have an id field to be exported
+            "q": f"!({self.id})"  # Object must have an id field to be exported
         })
         response.raise_for_status()
 
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(response.text)
+        # with open(path, "w", encoding="utf-8") as f:
+        #     f.write(response.text)
+
+        z = zipfile.ZipFile(io.BytesIO(response.content))
+        z.extrac(path)
 
     def fetch(self) -> None:
         """Fetch additional object information."""
@@ -212,7 +220,7 @@ class ObjectFactories:
         return self.client.join_urls(
             self.client.base_url,
             self.endpoint,
-            "import"
+            "import/"
         )
 
     @property
@@ -221,7 +229,7 @@ class ObjectFactories:
         return self.client.join_urls(
             self.client.base_url,
             self.endpoint,
-            "export"
+            "export/"
         )
 
     @property

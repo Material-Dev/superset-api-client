@@ -37,6 +37,7 @@ class SupersetClient:
         self._password = getpass.getpass() if password is None else password
         self.provider = provider
         self.session = requests.Session()
+        self.cookies = self.session.cookies
         self.verify = verify
 
         self._token, self.refresh_token = self.authenticate()
@@ -138,7 +139,7 @@ class SupersetClient:
     @property
     def _headers(self) -> Dict[str, str]:
         return {
-            "authorization": f"Bearer {self.token}",
+            "Authorization": f"Bearer {self.token}",
             "X-CSRFToken": f"{self.csrf_token}",
             "Referer": f"{self.base_url}"
         }
