@@ -4,9 +4,11 @@ import dataclasses
 import json
 from typing import List, Union
 from pathlib import Path
-import uuid
 
-import zipfile, io
+import uuid
+import shutil
+
+import zipfile, io, os
 
 
 import yaml
@@ -93,7 +95,7 @@ class Object:
             str(self.id)
         )
 
-    def export(self, path: Union[Path, str]) -> None:
+    def export(self, directory: Union[Path, str]) -> None:
         """Export object to path"""
         if not self.EXPORTABLE:
             raise NotImplementedError(
@@ -101,7 +103,7 @@ class Object:
             )
 
         # Get export response
-        file_uuid = str(uuid.uuid4())
+        zip_file_uuid = str(uuid.uuid4())
 
         client = self._parent.client
         response = client.get(self.export_url, params={
@@ -109,11 +111,19 @@ class Object:
         })
         response.raise_for_status()
 
-        # with open(path, "w", encoding="utf-8") as f:
-        #     f.write(response.text)
-
         z = zipfile.ZipFile(io.BytesIO(response.content))
-        z.extrac(path)
+
+        extraction_path = directory + "/" + zip_file_uuid
+
+        z.extractall(extraction_path)
+
+        extraction_folder = [x for x in os.listdir(extraction_path)
+            if ".DS_Store" not in x][0]
+
+        shutil.make_archive(f"{directory}/{zip_file_uuid}", 'zip',
+            f"{extraction_path}/{extraction_folder}")
+
+        shutil.rmtree(extraction_path)
 
     def fetch(self) -> None:
         """Fetch additional object information."""
