@@ -126,13 +126,17 @@ class Object:
         shutil.rmtree(extraction_path)
 
     def fetch(self) -> None:
-        """Fetch additional object information."""
+        """Fetch and set object information from remote
+        (updates if changes made remotely)"""
+        
         field_names = self.field_names()
 
         client = self._parent.client
         response = client.get(self.base_url)
+
         o = response.json()
-        o = o.get("result")
+        o = [x for x in o.get("result") if x['id']==self.id][0]
+
         for k, v in o.items():
             if k in field_names:
                 setattr(self, k, v)
@@ -336,7 +340,7 @@ class ObjectFactories:
         return objects[0]
 
     def add(self, obj) -> int:
-        """Create a object on remote."""
+        """Create an object on remote."""
 
         o = {}
         for c in self.add_columns:
@@ -359,7 +363,7 @@ class ObjectFactories:
         response = client.get(
             url,
             params={
-                "q": f"[{ids_array}]"
+                "q": "!(" + ",".join([str(x) for x in ids_array]) + ")"
             })
 
         if response.status_code not in (200, 201):

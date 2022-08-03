@@ -11,6 +11,7 @@ class Chart(Object):
     JSON_FIELDS = [
         "params"
     ]
+    EXPORTABLE = True
 
     id: int
     description: default_string()
