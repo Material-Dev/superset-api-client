@@ -16,7 +16,9 @@ from requests import Response
 
 from supersetapiclient.exceptions import NotFound
 
-logger = logging.getLogger(__name__)
+from .logger import LogConfig
+
+logger = LogConfig("superset_client").logger
 
 
 def json_field():
@@ -128,7 +130,7 @@ class Object:
     def fetch(self) -> None:
         """Fetch and set object information from remote
         (updates if changes made remotely)"""
-        
+
         field_names = self.field_names()
 
         client = self._parent.client
@@ -152,9 +154,11 @@ class Object:
                     value = json.dumps(value)
                 o[c] = value
 
-        response = self._parent.client.put(self.base_url, json=o)
+        response = self._parent.client.put(self.base_url + str(self.id), json=o)
+
         if response.status_code in [400, 422]:
             logger.error(response.text)
+
         response.raise_for_status()
 
 
@@ -192,20 +196,25 @@ class ObjectFactories:
             response.raise_for_status()
 
         infos = response.json()
-        self.edit_columns = [
-            e.get("name")
-            for e in infos.get("edit_columns", [])
-        ]
-        #
-        # Need to find a solution
-        #
+
         # Due to the design of the superset API,
         # get /chart/_info only returns 'slice_name'
         # for chart adds to work,
         # we require the additional attributes:
         #   'datasource_id',
         #   'datasource_type'
+
         if self.__class__.__name__ == 'Charts':
+
+            self.edit_columns = [
+                'datasource_id',
+                'datasource_type',
+                'slice_name',
+                'params',
+                'viz_type',
+                'description'
+            ]
+
             self.add_columns = [
                 'datasource_id',
                 'datasource_type',
@@ -214,7 +223,14 @@ class ObjectFactories:
                 'viz_type',
                 'description'
             ]
+
         else:
+
+            self.edit_columns = [
+                e.get("name")
+                for e in infos.get("edit_columns", [])
+            ]
+
             self.add_columns = [
                 e.get("name")
                 for e in infos.get("add_columns", [])
