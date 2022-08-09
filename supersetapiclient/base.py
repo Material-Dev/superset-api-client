@@ -96,7 +96,7 @@ class Object:
             str(self.id)
         )
 
-    def export(self, directory: Union[Path, str]) -> None:
+    def export(self, directory: Union[Path, str], filename:str=None) -> None:
         """Export object to path"""
         if not self.EXPORTABLE:
             raise NotImplementedError(
@@ -104,7 +104,8 @@ class Object:
             )
 
         # Get export response
-        zip_file_uuid = str(uuid.uuid4())
+        if not filename:
+            filename = str(uuid.uuid4())
 
         client = self._parent.client
         response = client.get(self.export_url, params={
@@ -114,14 +115,14 @@ class Object:
 
         z = zipfile.ZipFile(io.BytesIO(response.content))
 
-        extraction_path = directory + "/" + zip_file_uuid
+        extraction_path = directory + "/" + filename
 
         z.extractall(extraction_path)
 
         extraction_folder = [x for x in os.listdir(extraction_path)
             if ".DS_Store" not in x][0]
 
-        shutil.make_archive(f"{directory}/{zip_file_uuid}", 'zip',
+        shutil.make_archive(f"{directory}/{filename}", 'zip',
             f"{extraction_path}/{extraction_folder}")
 
         shutil.rmtree(extraction_path)

@@ -12,7 +12,9 @@ from supersetapiclient.datasets import Datasets
 from supersetapiclient.databases import Databases
 from supersetapiclient.saved_queries import SavedQueries
 
-logger = logging.getLogger(__name__)
+from .logger import LogConfig
+
+logger = LogConfig("superset_client").logger
 
 
 class SupersetClient:
