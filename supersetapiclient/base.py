@@ -204,7 +204,7 @@ class ObjectFactories:
         #   'datasource_id',
         #   'datasource_type'
 
-        if self.__class__.__name__ == 'Chart':
+        if self.__class__.__name__ == 'Charts':
 
             self.edit_columns = [
                 'datasource_id',
