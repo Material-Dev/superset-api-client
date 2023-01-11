@@ -116,20 +116,7 @@ class Object:
         data = response.content
         with open(path, 'wb') as f:
             f.write(data)
-        #
-        # z = zipfile.ZipFile(io.BytesIO(response.content))
-        #
-        # extraction_path = directory + "/" + filename
-        #
-        # z.extractall(extraction_path)
-        #
-        # extraction_folder = [x for x in os.listdir(extraction_path)
-        #     if ".DS_Store" not in x][0]
-        #
-        # shutil.make_archive(f"{directory}/{filename}", 'zip',
-        #     f"{extraction_path}/{extraction_folder}")
-        #
-        # shutil.rmtree(extraction_path)
+
 
     def fetch(self) -> None:
         """Fetch and set object information from remote
