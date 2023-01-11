@@ -96,7 +96,7 @@ class Object:
             str(self.id)
         )
 
-    def export(self, directory: Union[Path, str], filename:str=None) -> None:
+    def export(self, path: Union[Path, str], filename:str=None) -> None:
         """Export object to path"""
         if not self.EXPORTABLE:
             raise NotImplementedError(
@@ -113,19 +113,23 @@ class Object:
         })
         response.raise_for_status()
 
-        z = zipfile.ZipFile(io.BytesIO(response.content))
-
-        extraction_path = directory + "/" + filename
-
-        z.extractall(extraction_path)
-
-        extraction_folder = [x for x in os.listdir(extraction_path)
-            if ".DS_Store" not in x][0]
-
-        shutil.make_archive(f"{directory}/{filename}", 'zip',
-            f"{extraction_path}/{extraction_folder}")
-
-        shutil.rmtree(extraction_path)
+        data = response.content
+        with open(path, 'wb') as f:
+            f.write(data)
+        #
+        # z = zipfile.ZipFile(io.BytesIO(response.content))
+        #
+        # extraction_path = directory + "/" + filename
+        #
+        # z.extractall(extraction_path)
+        #
+        # extraction_folder = [x for x in os.listdir(extraction_path)
+        #     if ".DS_Store" not in x][0]
+        #
+        # shutil.make_archive(f"{directory}/{filename}", 'zip',
+        #     f"{extraction_path}/{extraction_folder}")
+        #
+        # shutil.rmtree(extraction_path)
 
     def fetch(self) -> None:
         """Fetch and set object information from remote
@@ -379,7 +383,8 @@ class ObjectFactories:
         response = client.get(
             url,
             params={
-                "q": "!(" + ",".join([str(x) for x in ids_array]) + ")"
+                # "q": "!(" + ",".join([str(x) for x in ids_array]) + ")"
+                "q": "!(" + ids_array + ")"
             })
 
         if response.status_code not in (200, 201):
@@ -387,17 +392,18 @@ class ObjectFactories:
         response.raise_for_status()
 
         content_type = response.headers["content-type"].strip()
+
         if content_type.startswith("application/text"):
             data = response.text
             data = yaml.load(data, Loader=yaml.FullLoader)
             with open(path, "w", encoding="utf-8") as f:
                 yaml.dump(data, f, default_flow_style=False)
         else:
-            data = response.json()
-            with open(path, 'w', encoding='utf-8') as f:
-                json.dump(data, f, ensure_ascii=False, indent=4)
+            data = response.content
+            with open(path, 'wb') as f:
+                f.write(data)
 
-        return data
+        return response.status_code
 
     def delete(self, id) -> int:
         """Delete a object on remote."""
